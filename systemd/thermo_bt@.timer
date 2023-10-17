@@ -1,0 +1,11 @@
+
+[Unit]
+Description=Bluetooth listner for @I device
+Requires=thermo_bt@I.service
+
+[Timer]
+Unit=thermo_bt@I.service
+OnCalendar=*-*-* *:*:00
+
+[Install]
+WantedBy=timers.target
