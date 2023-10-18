@@ -385,10 +385,11 @@ if __name__ == '__main__':
 
     if args.mine:
         print(sys.argv[0], "--target bleu_A4:C1:38:45:AF:D5")
-        print(sys.argv[0], "--name jaune_A4:C1:38:63:84:DA # phone only")
+        print(sys.argv[0], "--target jaune_A4:C1:38:63:84:DA # phone only")
         sys.exit(0)
 
     if args.target:
+        logging.info(f"Target: {args.target}")
         name, mac = args.target.split("_")
         mac_filters[name] = to_mac_filter(mac)
         
