@@ -124,7 +124,7 @@ def generate_hauteurs():
 def get_infoclimat_data(station_name, station_idx):
     url = f"https://www.infoclimat.fr/observations-meteo/temps-reel/{station_name}/{station_idx}.html?graphiques"
     try:
-        content = urllib.request.urlopen(url).read().decode('utf-8')
+        content = urllib.request.urlopen(url).read().decode('utf-8', "ignore")
         data = None
         for line in content.split("\n"):
             if not line.strip().startswith("var _data_gr = "):
@@ -134,7 +134,6 @@ def get_infoclimat_data(station_name, station_idx):
             break
         if not data:
             raise RuntimeError(f"Couldn't find the '_data_gr' anchor in '{url}' ...")
-
         json_data = json.loads(data)
         return json_data
     except Exception as e:
@@ -145,6 +144,9 @@ def get_infoclimat():
     # https://www.infoclimat.fr/observations-meteo/temps-reel/lhospitalet/000X4.html?graphiques
     data = get_infoclimat_data("lhospitalet", "000X4")
     has_errors = False
+    if not data:
+        logging.warning(f"No data available at {datetime.datetime.now()}")
+        return
 
     for key, gauge in INFOCLIMAT.items():
         try:
