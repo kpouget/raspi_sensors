@@ -9,5 +9,8 @@ WorkingDirectory=/root/sensors/thermo_bt/
 ExecStart=python3 /root/sensors/thermo_bt/nrf_sniffer_ble.py --target %I
 ExecReload=/bin/kill -HUP $MAINPID
 
+Restart=always
+RestartSec=60
+
 [Install]
 WantedBy=multi-user.target
