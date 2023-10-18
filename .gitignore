@@ -1,1 +1,4 @@
-thermo_bt/enviroplus_exporter.log
+thermo_bt/*.log
+infoclimat/*.log
+thermo_bt/SnifferAPI/__pycache__/
+thermo_bt/__pycache__/
