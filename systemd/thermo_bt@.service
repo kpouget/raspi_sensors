@@ -6,7 +6,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/root/sensors/thermo_bt/
-ExecStart=python3 /root/sensors/thermo_bt/nrf_sniffer_ble.py --name @I
+ExecStart=python3 /root/sensors/thermo_bt/nrf_sniffer_ble.py --target %I
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]

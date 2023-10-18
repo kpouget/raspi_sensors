@@ -1,11 +1,12 @@
 
 [Unit]
-Description=Bluetooth listner for @I device
-Requires=thermo_bt@I.service
+Description=Bluetooth timer for %i device
+Requires=thermo_bt@%i.service
 
 [Timer]
-Unit=thermo_bt@I.service
-OnCalendar=*-*-* *:*:00
+Unit=thermo_bt@%i.service
+OnBootSec=5min
+OnUnitActiveSec=5min
 
 [Install]
 WantedBy=timers.target

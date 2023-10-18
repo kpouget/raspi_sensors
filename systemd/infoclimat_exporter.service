@@ -6,7 +6,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/root/sensors/infoclimat
-ExecStart=python3 /root/sensors/infoclimat_exporter.py --bind=0.0.0.0 --port=8001
+ExecStart=python3 /root/sensors/infoclimat/infoclimat_exporter.py --bind=0.0.0.0 --port=8001
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]

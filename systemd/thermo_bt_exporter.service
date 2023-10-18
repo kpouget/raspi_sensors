@@ -6,7 +6,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/root/sensors/thermo_bt/
-ExecStart=python3 /root/sensors/thermo_bt/thermo_bt_exporter.py --bind=0.0.0.0 --port=8002 --file /tmp/bleu.json
+ExecStart=python3 /root/sensors/thermo_bt/thermo_bt_exporter.py --bind=0.0.0.0 --port=8002 --file /tmp/bleu.json --location chambre_sohann
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
