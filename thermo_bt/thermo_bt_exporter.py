@@ -102,6 +102,9 @@ if __name__ == '__main__':
     if args.debug:
         DEBUG = True
 
+    for filename, location in zip(args.file, args.location):
+        logging.info(f"Watching for {filename} --> {location}")
+
     logging.info("Listening on http://{}:{}".format(args.bind, args.port))
 
     previous_ts = datetime.datetime.now()
