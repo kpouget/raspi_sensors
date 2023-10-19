@@ -1,0 +1,11 @@
+[Unit]
+Description=Bluetooth watcher for %i lywsd03mmc device
+Requires=lywsd03mmc_watcher@%i.service
+
+[Timer]
+Unit=lywsd03mmc_watcher@%i.service
+OnBootSec=5min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target

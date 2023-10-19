@@ -1,0 +1,13 @@
+[Unit]
+Description=Bluetooth watcher for %i lywsd03mmc device
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/root/sensors/lywsd03mmc
+ExecStart=python3 /root/sensors/lywsd03mmc/lywsd03mmc_watcher.py --target=%i
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
