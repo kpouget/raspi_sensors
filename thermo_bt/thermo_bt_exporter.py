@@ -42,6 +42,8 @@ BATT_MV = Gauge('batt_mv', 'Battery power (mV)', ["location"])
 BATT_LVL = Gauge('batt_lvl', 'Battery level (%)', ["location"])
 READ_COUNTER = Gauge('read_counter', 'Device read counter', ["location"])
 READ_TIMESTAMP = Gauge('read_timestamp', 'Device read timestamp', ["location"])
+TIME = Gauge('time', 'Read timestamp', ["location"])
+
 # ---
 
 def get_data(filename, location):
@@ -70,6 +72,8 @@ def get_data(filename, location):
     if (timestamp := data.get("timestamp")) is not None:
         READ_TIMESTAMP.labels(location).set(timestamp)
 
+    if (time := data.get("time")) is not None:
+        TIME.labels(location).set(time)
 # ---
 
 def collect_all_data():

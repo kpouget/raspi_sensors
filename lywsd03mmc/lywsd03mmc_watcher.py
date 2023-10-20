@@ -38,6 +38,8 @@ json_data = json.dumps(dict(
     humidity = data.humidity,
     batt_lvl = data.battery,
     batt_mv = data.voltage,
+    date = str(datetime.now()),
+    time = int(datetime.utcnow().timestamp()),
 ), indent=4)
 
 

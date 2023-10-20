@@ -41,6 +41,7 @@
 Wireshark extcap wrapper for the nRF Sniffer for Bluetooth LE by Nordic Semiconductor.
 """
 
+import datetime
 import threading
 import json
 import os
@@ -192,15 +193,20 @@ def handle_packet(p):
     for location, mac_filter in mac_filters.items():
         if mac_filter not in hex_repr:
             continue
+        try:
+          data = trame.decode(location, p)
+          if not data: continue
+        except Exception as e:
+          logging.error(f"Could no decode the trame ... {e.__class__.__name__}: {e}")
+          continue
 
-        data = trame.decode(location, p)
-        if not data: continue
-
+        data["date"] = str(datetime.datetime.now())
+        data["time"] = int(datetime.datetime.utcnow().timestamp())
         found.append(location)
         dest = f"/tmp/{location}.json"
         logging.info(f"Saving {dest} ...")
         with open(dest, "w") as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=4)
 
     if not found: return
     for location in found:
