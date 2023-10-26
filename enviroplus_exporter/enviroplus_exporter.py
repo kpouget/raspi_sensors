@@ -296,13 +296,6 @@ if __name__ == '__main__':
     parser.add_argument("-i", "--influxdb", metavar='INFLUXDB', type=str_to_bool, default='false', help="Post sensor data to InfluxDB [default: false]")
     parser.add_argument("-l", "--luftdaten", metavar='LUFTDATEN', type=str_to_bool, default='false', help="Post sensor data to Luftdaten [default: false]")
     args = parser.parse_args()
-
-    if args.port > 0:
-        # Start up the server to expose the metrics.
-        start_http_server(addr=args.bind, port=args.port)
-    else:
-        logging.info("No port specified, running in debug mode.")
-        DEBUG = True
         
     # Generate some requests.
 
@@ -325,7 +318,13 @@ if __name__ == '__main__':
         luftdaten_thread = Thread(target=post_to_luftdaten)
         luftdaten_thread.start()
 
-    logging.info("Listening on http://{}:{}".format(args.bind, args.port))
+    if args.port > 0:
+        # Start up the server to expose the metrics.
+        start_http_server(addr=args.bind, port=args.port)
+        logging.info("Listening on http://{}:{}".format(args.bind, args.port))
+    else:
+        logging.info("No port specified, running in debug mode.")
+        DEBUG = True
 
     while True:
         get_temperature(args.factor)
