@@ -329,7 +329,7 @@ if __name__ == '__main__':
         get_light()
         if not args.enviro:
             get_gas()
-            #get_particulates()
+            get_particulates()
         if DEBUG:
             logging.info('Sensor data: {}'.format(collect_all_data()))
         time.sleep(30)
