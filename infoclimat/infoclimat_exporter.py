@@ -49,6 +49,8 @@ INFOCLIMAT_GAUGES = {
 
     'uv_idx': 'UV index',
     'sun_rad': ('Sun radiation', ["mode"]),
+
+    'pressure': "Pression (in hPa)"
 }
 
 INFOCLIMAT_PROPS = {
@@ -66,6 +68,7 @@ INFOCLIMAT_PROPS = {
     "uvindex": ('uv_idx', {}),
     "srad": ('sun_rad', dict(mode="actual")),
     "srad_theo": ('sun_rad', dict(mode="theo")),
+    "slp": ('pressure', {})
 }
 
 def prepare_infoclimat_gauges(gauges_def, infoclimat_props):
@@ -156,7 +159,16 @@ def get_infoclimat():
             has_errors = True
             continue
 
-        _ts, value = ts_value
+        if isinstance(ts_value, dict):
+            #_ts = ts_value["x"]
+            value = ts_value["y"]
+
+        elif isinstance(ts_value, list) and len(ts_value) == 2:
+            _ts, value = ts_value
+            
+        else:
+            continue
+        
         if value is not None:
             gauge.set(value)
 
