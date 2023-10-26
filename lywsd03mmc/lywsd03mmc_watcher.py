@@ -19,6 +19,9 @@ args = parser.parse_args()
 location, mac = args.target.split("_")
 output = f"/tmp/{location}.json"
 
+logging.info("Restarting the bluetooth hci ...")
+os.system("hciconfig hci0 down && hciconfig hci0 up")
+
 logging.info(f"Trying to connect to {mac} ...")
 client = lywsd03mmc.Lywsd03mmcClient(mac)
 
@@ -26,8 +29,8 @@ for i in range(args.tries):
     try:
         data = client.data
         break
-    except bluepy.btle.BTLEDisconnectError:
-        logging.warning(f"Try #{i+1}/{args.tries}: failed to connect :/")
+    except bluepy.btle.BTLEDisconnectError as e:
+        logging.warning(f"Try #{i+1}/{args.tries}: failed to connect :/ (BTLEDisconnectError: {e})")
 else:
     logging.error(f"All the {args.tries} tries failed to connect :/")
     sys.exit(1)
