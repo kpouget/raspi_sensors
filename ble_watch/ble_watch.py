@@ -11,6 +11,7 @@ import argparse
 
 from bluepy import btle
 from bluepy.btle import Scanner, Peripheral, Characteristic, ScanEntry, UUID
+import bluepy.btle
 
 import trame
 
