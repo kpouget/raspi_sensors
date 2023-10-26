@@ -30,8 +30,9 @@ for i in range(args.tries):
     try:
         data = client.data
         break
-    except bluepy.btle.BTLEDisconnectError as e:
-        logging.warning(f"Try #{i+1}/{args.tries}: failed to connect :/ (BTLEDisconnectError: {e})")
+    except Exception as e:
+        logging.warning(f"Try #{i+1}/{args.tries}: failed to connect :/ ({e.__class__.__name__}: {e})")
+
 else:
     logging.error(f"All the {args.tries} tries failed to connect :/")
     sys.exit(1)
