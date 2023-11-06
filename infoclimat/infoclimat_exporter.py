@@ -127,7 +127,8 @@ def generate_hauteurs():
 def get_infoclimat_data(station_name, station_idx):
     url = f"https://www.infoclimat.fr/observations-meteo/temps-reel/{station_name}/{station_idx}.html?graphiques"
     try:
-        content = urllib.request.urlopen(url).read().decode('utf-8', "ignore")
+        req = urllib.request.Request(url,  headers={'User-Agent': 'Mozilla/5.0'})
+        content = urllib.request.urlopen(req).read().decode('utf-8', "ignore")
         data = None
         for line in content.split("\n"):
             if not line.strip().startswith("var _data_gr = "):
