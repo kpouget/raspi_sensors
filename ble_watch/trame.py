@@ -48,19 +48,29 @@ def decode(location, _trame):
 
     trame = SIZE_UID_UUID + content
     size, uid, uuid = struct.unpack('<BBH', trame[START:START+HEADER_LENGTH])
+
     mac = struct.unpack('>HHH', trame[START+HEADER_LENGTH:START+HEADER_LENGTH+MAC_LENGTH])
     mac_hexa = "".join(map(hex, mac)).replace("0x", "").upper()
     mac_addr = ":".join(reversed([f"{a}{b}" for a, b in zip(mac_hexa[0::2], mac_hexa[1::2])]))
 
-    keys = ["temperature", "humidity", "batt_mv", "batt_lvl", "counter", "flags"]
-    values = struct.unpack('<hHHBBB', trame[DATA_START:DATA_START+DATA_LENGTH])
+    if mac_addr.startswith("A4"):
+      keys = ["temperature", "humidity", "batt_mv", "batt_lvl", "counter", "flags"]
+      values = struct.unpack('<hHHBBB', trame[DATA_START:DATA_START+DATA_LENGTH])
 
-    kv = dict(zip(keys, values))
-    kv["temperature"] /= 100
-    kv["humidity"] /= 100
+      kv = dict(zip(keys, values))
+      kv["temperature"] /= 100
+      kv["humidity"] /= 100
+      kv.pop("flags")
+    else:
+      keys = ["temperature", "humidity", "batt_lvl", "batt_mv", "counter"]
+      values = struct.unpack('!hBBhB', trame[DATA_START:DATA_START+DATA_LENGTH])
+
+      kv = dict(zip(keys, values))
+      kv["temperature"] /= 10
+
     g = globals()
     g.update(kv)
-    kv.pop("flags")
+    
     global current_counter
     import datetime
     print(datetime.datetime.now().time().replace(microsecond=0))
