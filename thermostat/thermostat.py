@@ -9,6 +9,7 @@ import datetime
 import yaml
 import pathlib
 import time
+import argparse
 
 import prometheus_client.parser
 from prometheus_client import start_http_server, Gauge
@@ -206,6 +207,14 @@ def main(args):
             first = False
 
         time.sleep(60)
+
+
+def str_to_bool(value):
+    if value.lower() in {'false', 'f', '0', 'no', 'n'}:
+        return False
+    elif value.lower() in {'true', 't', '1', 'yes', 'y'}:
+        return True
+    raise ValueError('{} is not a valid boolean value'.format(value))
 
 
 if __name__ == "__main__":
