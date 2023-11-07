@@ -166,10 +166,10 @@ def get_infoclimat():
 
         elif isinstance(ts_value, list) and len(ts_value) == 2:
             _ts, value = ts_value
-            
+
         else:
             continue
-        
+
         if value is not None:
             gauge.set(value)
 
@@ -223,21 +223,22 @@ if __name__ == '__main__':
     parser.add_argument("-d", "--debug", metavar='DEBUG', type=str_to_bool, help="Turns on more verbose logging, showing sensor output and post responses [default: false]")
     args = parser.parse_args()
 
-    # Start up the server to expose the metrics.
-    start_http_server(addr=args.bind, port=args.port)
-    # Generate some requests.
-
     if args.debug:
         DEBUG = True
 
-    logging.info("Listening on http://{}:{}".format(args.bind, args.port))
-
+    first = True
     previous_ts = datetime.datetime.now()
     while True:
 
         get_infoclimat()
         get_sun_position()
         generate_hauteurs()
+
+        if first:
+            # Start up the server to expose the metrics.
+            start_http_server(addr=args.bind, port=args.port)
+            logging.info("Listening on http://{}:{}".format(args.bind, args.port))
+            first = False
 
         if DEBUG:
             logging.info('Sensor data: {}'.format(collect_all_data()))
