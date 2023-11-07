@@ -24,7 +24,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S')
 
 THEMOSTATS = [
-    types.SimpleNamespace(location="bureau_kevin", target=20),
+    types.SimpleNamespace(location="bureau_kevin", target=18),
     types.SimpleNamespace(location="chambre_sohann", target=16),
 ]
 
