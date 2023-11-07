@@ -1,0 +1,16 @@
+[Unit]
+Description=Bluetooth BLE watcher for @I device
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/root/sensors/ble_watch/
+ExecStart=python3 /root/sensors/ble_watch/./ble_watch.py --target %I
+ExecReload=/bin/kill -HUP $MAINPID
+
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

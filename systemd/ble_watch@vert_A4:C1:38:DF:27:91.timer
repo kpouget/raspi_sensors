@@ -1,0 +1,12 @@
+
+[Unit]
+Description=Bluetooth timer for %i device
+Requires=ble_watch@%i.service
+
+[Timer]
+Unit=ble_watch@%i.service
+OnBootSec=5min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
