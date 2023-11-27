@@ -25,8 +25,8 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S')
 
 THEMOSTATS = [
-    types.SimpleNamespace(location="bureau_kevin", target=18),
-    types.SimpleNamespace(location="chambre_sohann", target=16),
+    types.SimpleNamespace(location="bureau_kevin", target=19),
+    types.SimpleNamespace(location="chambre_sohann", target=17),
 ]
 
 HEATER_STATE = Gauge('heater_state', 'Heater state', ["location"])
@@ -91,7 +91,7 @@ def get_new_heater_state(thermo, current_temp, current_state):
     if heat_diff < 0:
         logging.info(f"Room '{thermo.location}' --> too cold (-,-)")
         return True
-    elif current_state and heat_diff < 2:
+    elif current_state and heat_diff < 0.5:
         logging.info(f"Room '{thermo.location}' --> just above limit, keep heating up (+.+)")
         return True
     else:
