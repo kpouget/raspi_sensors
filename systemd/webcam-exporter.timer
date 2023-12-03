@@ -1,0 +1,11 @@
+[Unit]
+Description=Webcam exporter timer
+Requires=webcam-exporter.service
+
+[Timer]
+Unit=webcam-exporter.service
+OnBootSec=5min
+OnUnitActiveSec=1min
+
+[Install]
+WantedBy=timers.target

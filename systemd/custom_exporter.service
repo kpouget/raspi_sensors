@@ -1,0 +1,14 @@
+[Unit]
+Description=Custom metrics exporter service
+After=network.target
+
+[Service]
+Environment=BOTTLE_PORT=7000
+WorkingDirectory=/home/kevin/0x972.info/metrics
+ExecStart=python3 /home/kevin/0x972.info/metrics/server.py
+ExecReload=/bin/kill -HUP $MAINPID
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

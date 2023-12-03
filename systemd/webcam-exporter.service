@@ -1,0 +1,11 @@
+[Unit]
+Description=Webcam status exporter service
+After=network.target
+
+[Service]
+ExecStart=bash -ce "state=$(lsmod | grep "^uvcvideo" | awk '{ print $3}'); echo 'webcam state: '$state ; curl -Ssf -X POST https://custom-exporter.972.ovh/ -d 'what=webcam_4&__increase__=false&webcam_4='$state > /dev/null"
+Type=oneshot
+
+
+[Install]
+WantedBy=graphical-session.target
