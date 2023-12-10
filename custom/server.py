@@ -2,6 +2,7 @@ import json
 import sys
 import os
 
+import datetime
 import bottle
 import prometheus_client
 import prometheus_client.parser
@@ -10,8 +11,8 @@ METRICS_FILE = "out/metrics.txt"
 LABELS_COUNT = 3
 
 existing_metrics = {}
-existing_metrics_cpt = 0
-pluie_vayrac = None
+
+last_update = {}
 
 @bottle.route('/static/<filepath:re:.*\.css>')
 def css(filepath):
@@ -27,13 +28,12 @@ def update_metric(metric_key, update_value, increase=True):
         new_value += current_value
 
     metric.set(new_value)
+    last_update[metric_key] = f"le {datetime.datetime.now().strftime('%Y-%m-%d à %H:%M')}", update_value
 
-    return f"{metric._documentation} [{metric._name}] --> {new_value}", True
+    return f"{metric._documentation} [{metric_key}] +{update_value} --> {new_value}", True
 
 
 def new_metric(forms):
-    global existing_metrics_cpt
-
     name = forms["__new__.name"]
     descr = forms["__new__.description"]
     if descr == "exit":
@@ -61,11 +61,15 @@ def new_metric(forms):
         metric = metric.labels(*labels.values())
     metric.set(0)
 
-
-    existing_metrics[f"{name}_{existing_metrics_cpt}"] = metric
-    existing_metrics_cpt += 1
+    insert_metric(metric)
 
     return f"Métrique {name}{labels} crée :)", True
+
+
+def insert_metric(metric):
+    label_id = "-".join([f"{k}_{v}" for k, v in zip(metric._labelnames, metric._labelvalues)])
+
+    existing_metrics[f"{metric._name}--{label_id}"] = metric
 
 
 @bottle.route('/', method=["POST", "GET"])
@@ -85,11 +89,9 @@ def index():
     else:
         msg = None
 
-    return bottle.template("index", metrics=existing_metrics.items(), msg=msg, LABELS_COUNT=LABELS_COUNT)
+    return bottle.template("index", metrics=existing_metrics.items(), msg=msg, LABELS_COUNT=LABELS_COUNT, last_update=last_update)
 
 def load_metrics():
-    global existing_metrics_cpt
-
     with open(METRICS_FILE) as f:
         metrics = f.read()
 
@@ -112,8 +114,7 @@ def load_metrics():
             full_metric = metric.labels(*sample.labels.values()) if sample.labels else metric
             full_metric.set(sample.value)
 
-            existing_metrics[f"{family.name}_{existing_metrics_cpt}"] = full_metric
-            existing_metrics_cpt += 1
+            insert_metric(full_metric)
 
 
 @bottle.route('/metrics')

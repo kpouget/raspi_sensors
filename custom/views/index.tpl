@@ -17,13 +17,18 @@
     % import json
     % label_dict = dict(zip(metric._labelnames, metric._labelvalues))
     % label_text = ", ".join(f"{k}: {v}" for k, v in label_dict.items())
-
+    % label_text = "{"+label_text+"}" if label_text else ""
     <p>
       <input type="hidden" name="what" value="{{ metric_id }}">
       <input type="number" id="{{ metric_id }}" placeholder="{{ metric_id}} ({{ metric._samples()[0].value }})" name="{{ metric_id }}" required>
       <button type="submit">Ajouter</button>
       <br/>
-      <label for="{{ metric_id }}"><i>{{ label_text }}</i><br/><b>{{ metric._name }}</b>: {{ metric._documentation}}</label>
+      <label for="{{ metric_id }}">
+        {{ metric._documentation}} | <code>{{ metric._name }} {{ label_text }}</code></label>
+      <br/>
+      % metric_last_update =  last_update.get(metric_id, ["jamais", 0])
+      <b>Dernière mise à jour:</b> +{{metric_last_update[1]}} {{ metric_last_update[0]}}
+      </br>
       </p>
   </form>
   <hr/>
