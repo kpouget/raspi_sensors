@@ -24,10 +24,6 @@ logging.basicConfig(
               logging.StreamHandler()],
     datefmt='%Y-%m-%d %H:%M:%S')
 
-THEMOSTATS = [
-    types.SimpleNamespace(location="bureau_kevin", target=19),
-    types.SimpleNamespace(location="chambre_sohann", target=17),
-]
 
 HEATER_STATE = Gauge('heater_state', 'Heater state', ["location"])
 HEAT_DIFF = Gauge('heat_difference', 'Heat difference', ["location"])
@@ -37,13 +33,18 @@ HEAT_MISSING = Gauge('heat_missing', 'Heat missing', ["location"])
 HEAT_AGE = Gauge('heat_age', 'Heat age', ["location"])
 HEAT_TOO_OLD = Gauge('heat_too_old', 'Heat too old', ["location"])
 
-PLUGS_CONFIG = None # set in load_plugs_config()
-
+# set in load_plugs_config()
+PLUGS_CONFIG = None 
 
 def load_plugs_config():
     global PLUGS_CONFIG
     with open("./thermo.yaml") as f:
         PLUGS_CONFIG = yaml.safe_load(f)
+
+
+def load_thermo_config():
+    with open("./config.yaml") as f:
+        return yaml.safe_load(f)
 
 
 def get_plug(location):
@@ -81,28 +82,29 @@ def get_temperatures(locations):
     return temperatures
 
 
-def get_new_heater_state(thermo, current_temp, current_state):
+def get_new_heater_state(thermo, target, current_temp, current_state):
     heat_diff = current_temp - thermo.target
-    HEAT_DIFF.labels(location=thermo.location).set(heat_diff)
+    location = thermo["location"]
+    HEAT_DIFF.labels(location=location).set(heat_diff)
 
-    logging.info(f"Room '{thermo.location}': {current_temp=:.2f}, {thermo.target=:.2f}, diff={heat_diff:.2f} | current={'on' if current_state else 'off'}")
+    logging.info(f"Room '{location}': {current_temp=:.2f}, {target=:.2f}, diff={heat_diff:.2f} | current={'on' if current_state else 'off'}")
 
 
     if heat_diff < 0:
-        logging.info(f"Room '{thermo.location}' --> too cold (-,-)")
+        logging.info(f"Room '{location}' --> too cold (-,-)")
         return True
     elif current_state and heat_diff < 0.5:
-        logging.info(f"Room '{thermo.location}' --> just above limit, keep heating up (+.+)")
+        logging.info(f"Room '{location}' --> just above limit, keep heating up (+.+)")
         return True
     else:
-        logging.info(f"Room '{thermo.location}' --> hot enough (^.^)")
+        logging.info(f"Room '{location}' --> hot enough (^.^)")
         return False
 
 
 def set_heater_state(location, current_state, new_state):
-    if new_state == current_state:
-        logging.info(f"Room '{location}' ==> don't touch the heater (current_state={'on' if new_state else 'off'})")
-        return new_state
+    #if new_state == current_state:
+    #    logging.info(f"Room '{location}' ==> don't touch the heater (current_state={'on' if new_state else 'off'})")
+    #    return new_state
 
     try:
         plug = get_plug(location)
@@ -125,52 +127,68 @@ def set_heater_state(location, current_state, new_state):
     return new_state
 
 
+def get_target(thermo):
+    current_time = datetime.datetime.now().time().hour
+    target = 0
+    for schedule_time, schedule_temp in thermo["schedule"].items():
+        # if the next schedule is later than now
+        if schedule_time > current_time:
+            # return the previous target
+            return target
+        target = schedule_time
+        
+    return 0
+
+
 def update_one(thermo, temperature, current_state):
+    location = thermo["location"]
+    target = get_target(thermo)
     try:
         age = datetime.datetime.now() - temperature.time
     except AttributeError:
-        HEAT_AGE.labels(location=thermo.location).set(-100)
+        HEAT_AGE.labels(location=location).set(-100)
     else:
-        HEAT_AGE.labels(location=thermo.location).set(age.total_seconds())
+        HEAT_AGE.labels(location=location).set(age.total_seconds())
 
     heat_too_old = age > datetime.timedelta(minutes=20)
     if heat_too_old:
-        HEAT_TOO_OLD.labels(location=thermo.location).set(1)
+        HEAT_TOO_OLD.labels(location=location).set(1)
     else:
-        HEAT_TOO_OLD.labels(location=thermo.location).set(0)
+        HEAT_TOO_OLD.labels(location=location).set(0)
 
-    HEAT_CURRENT.labels(location=thermo.location).set(temperature.value)
-    HEAT_TARGET.labels(location=thermo.location).set(thermo.target)
+    HEAT_CURRENT.labels(location=location).set(temperature.value)
+    HEAT_TARGET.labels(location=location).set(target)
 
     new_state = False
     if not heat_too_old:
-        new_state = get_new_heater_state(thermo, temperature.value, current_state)
+        new_state = get_new_heater_state(thermo, target, temperature.value, current_state)
     else:
-        logging.warning(f"Temperature of '{thermo.location}' is outdated (-,-) ({age})")
+        logging.warning(f"Temperature of '{location}' is outdated (-,-) ({age})")
 
-    final_state = set_heater_state(thermo.location, current_state, new_state)
+    final_state = set_heater_state(location, current_state, new_state)
 
     return final_state
 
 
-def update_all(themostats, state):
-    locations = [thermo.location for thermo in themostats]
+def update_all(thermostats, state):
+    locations = [thermo["location"] for thermo in thermostats]
     temperatures = get_temperatures(locations)
 
-    for thermo in themostats:
+    for thermo in thermostats:
+        location = thermo["location"]
         try:
-            temperature = temperatures[thermo.location]
+            temperature = temperatures[location]
         except KeyError:
-            HEAT_MISSING.labels(location=thermo.location).set(1)
+            HEAT_MISSING.labels(location=location).set(1)
             continue
-        HEAT_MISSING.labels(location=thermo.location).set(0)
+        HEAT_MISSING.labels(location=location).set(0)
 
-        old_state = state.get(thermo.location)
+        old_state = state.get(location)
         new_state = update_one(thermo, temperature, old_state)
 
-        state[thermo.location] = new_state
+        state[location] = new_state
 
-        show_metrics(thermo.location)
+        show_metrics(location)
         logging.info("---")
 
 
@@ -199,7 +217,8 @@ def main(args):
     first = True
 
     while True:
-        update_all(THEMOSTATS, state)
+        thermostats = load_thermo_config()
+        update_all(thermostats, state)
         logging.info("")
         if first:
             start_http_server(addr=args.bind, port=args.port)

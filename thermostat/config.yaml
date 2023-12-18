@@ -1,0 +1,15 @@
+- location: bureau_kevin
+  schedule:
+    8: 17
+    19: 19
+    24: 17
+  threshold: 0.5
+
+- location: chambre_sohann
+  schedule:
+    9: 18
+    12: 17
+    15: 18
+    19: 17
+    24: 18
+  threshold: 0.5
