@@ -152,6 +152,9 @@ def load_metrics():
         for entry in metric_props["entries"]:
             if entry["labels"]:
                 full_metric = metric.labels(*entry["labels"].values())
+            else:
+                full_metric = metric
+
             full_metric.set(entry.get("value") or 0)
 
             publish_metric(full_metric, entry)
