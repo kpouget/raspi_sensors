@@ -36,12 +36,12 @@ def update_metric(metric_key, update_value, increase=True):
     entry["last_update"]["date"] = datetime.datetime.now().strftime('%Y-%m-%d à %H:%M')
     entry["last_update"]["value"] = float(update_value)
     entry["value"] = new_value
-    
+
     with open(METRICS_FILE_YAML, "w") as f:
         if not yaml_metrics:
             raise Exception("yaml is empty ...")
         print(yaml.dump(yaml_metrics), file=f)
-    
+
     return f"{metric._documentation} [{metric_key}] +{update_value}{entry['units']} --> {new_value}{entry['units']}", True
 
 
@@ -49,7 +49,7 @@ def new_metric(forms):
     name = forms["__new__.name"]
     docu = forms["__new__.documentation"]
     units = forms["__new__.units"]
-    
+
     if docu == "exit":
         sys.stderr.close()
         return "Closing", False
@@ -62,7 +62,7 @@ def new_metric(forms):
         # prometheus_client.registry.REGISTRY.unregister(metric)
 
         yaml_metrics[metric.name].pop(entry)
-        
+
         return f"Métrique {name} supprimée", True
 
     labels = {}
@@ -77,10 +77,10 @@ def new_metric(forms):
     except KeyError:
         metric = prometheus_client.Gauge(name, docu, labels.keys())
         top_metrics[name] = metric
-        
+
     if labels:
         metric = metric.labels(*labels.values())
-        
+
     metric.set(0)
 
     if name not in yaml_metrics:
@@ -95,17 +95,17 @@ def new_metric(forms):
         value=0,
         units=units,
     )
-    
+
     yaml_metrics[name]["entries"].append(entry)
-        
+
     publish_metric(metric, entry)
 
     with open(METRICS_FILE_YAML, "w") as f:
         if not yaml_metrics:
             raise Exception("yaml is empty ...")
         print(yaml.dump(yaml_metrics), file=f)
-    
-    
+
+
     return f"Métrique {name}{labels} crée :)", True
 
 
