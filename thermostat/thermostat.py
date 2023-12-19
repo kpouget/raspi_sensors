@@ -83,7 +83,7 @@ def get_temperatures(locations):
 
 
 def get_new_heater_state(thermo, target, current_temp, current_state):
-    heat_diff = current_temp - thermo.target
+    heat_diff = current_temp - target
     location = thermo["location"]
     HEAT_DIFF.labels(location=location).set(heat_diff)
 
@@ -129,13 +129,10 @@ def set_heater_state(location, current_state, new_state):
 
 def get_target(thermo):
     current_time = datetime.datetime.now().time().hour
-    target = 0
+
     for schedule_time, schedule_temp in thermo["schedule"].items():
-        # if the next schedule is later than now
         if schedule_time > current_time:
-            # return the previous target
-            return target
-        target = schedule_time
+            return schedule_temp
         
     return 0
 
