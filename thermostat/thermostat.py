@@ -26,7 +26,10 @@ logging.basicConfig(
 
 HEATER_STATE = Gauge('heater_state', 'Heater state', ["location"])
 HEAT_DIFF = Gauge('heat_difference', 'Heat difference', ["location"])
+
 HEAT_TARGET = Gauge('heat_target', 'Heat target', ["location"])
+HEAT_LIMIT = Gauge('heat_limit', 'Heat limit', ["location"])
+
 HEAT_CURRENT = Gauge('heat_current', 'Heat current', ["location"])
 HEAT_MISSING = Gauge('heat_missing', 'Heat missing', ["location"])
 HEAT_AGE = Gauge('heat_age', 'Heat age', ["location"])
@@ -81,18 +84,18 @@ def get_temperatures(locations):
     return temperatures
 
 
-def get_new_heater_state(thermo, target, current_temp, current_state):
+def get_new_heater_state(thermo, target, limit, current_temp, current_state):
     heat_diff = current_temp - target
     location = thermo["location"]
     HEAT_DIFF.labels(location=location).set(heat_diff)
-
+    
     logging.info(f"Room '{location}': {current_temp=:.2f}, {target=:.2f}, diff={heat_diff:.2f} | current={'on' if current_state else 'off'}")
 
 
     if heat_diff < 0:
         logging.info(f"Room '{location}' --> too cold (-,-)")
         return True
-    elif current_state and heat_diff < 0.5:
+    elif current_state and current_temp < limit:
         logging.info(f"Room '{location}' --> just above limit, keep heating up (+.+)")
         return True
     else:
@@ -139,6 +142,8 @@ def get_target(thermo):
 def update_one(thermo, temperature, current_state):
     location = thermo["location"]
     target = get_target(thermo)
+    limit = target + thermo["threshold"]
+
     try:
         age = datetime.datetime.now() - temperature.time
     except AttributeError:
@@ -154,10 +159,11 @@ def update_one(thermo, temperature, current_state):
 
     HEAT_CURRENT.labels(location=location).set(temperature.value)
     HEAT_TARGET.labels(location=location).set(target)
+    HEAT_LIMIT.labels(location=location).set(limit)
 
     new_state = False
     if not heat_too_old:
-        new_state = get_new_heater_state(thermo, target, temperature.value, current_state)
+        new_state = get_new_heater_state(thermo, target, limit, temperature.value, current_state)
     else:
         logging.warning(f"Temperature of '{location}' is outdated (-,-) ({age})")
 
