@@ -20,8 +20,7 @@ from PyP100 import PyP100
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
     level=logging.INFO,
-    handlers=[logging.FileHandler("thermostat.log"),
-              logging.StreamHandler()],
+    handlers=[logging.StreamHandler()],
     datefmt='%Y-%m-%d %H:%M:%S')
 
 
