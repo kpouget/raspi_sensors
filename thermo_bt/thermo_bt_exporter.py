@@ -38,6 +38,9 @@ sensor_data = {}
 TEMPERATURE = Gauge('temperature','Temperature measured (*C)', ["location"])
 HUMIDITY = Gauge('humidity','Relative humidity measured (%)', ["location"])
 
+DREW_POINT = Gauge('drew_point','Point de rosée (*C)', ["location"])
+HUMIDEX = Gauge('humidex','Humidex', ["location"])
+
 BATT_MV = Gauge('batt_mv', 'Battery power (mV)', ["location"])
 BATT_LVL = Gauge('batt_lvl', 'Battery level (%)', ["location"])
 READ_COUNTER = Gauge('read_counter', 'Device read counter', ["location"])
@@ -60,6 +63,14 @@ def get_data(filename, location):
     if (humidity := data.get("humidity")) is not None:
         HUMIDITY.labels(location).set(humidity)
 
+    if (temperature := data.get("temperature")) is not None and (humidity := data.get("humidity")) is not None:
+        alpha = math.log(humidite / 100.0) + (17.27 * temperature) / (237.3 + temperature)
+        drew = (237.3 * alpha) / (17.27 - alpha)
+        humidex = temperature + 0.5555 * (6.11 * math.exp(5417.753 * (1 / 273.16 - 1 / (273.15 + rosee))) - 10)
+
+        DREW_POINT.labels(location).set(drew)
+        HUMIDEX.labels(location).set(humidex)
+        
     if (counter := data.get("counter")) is not None:
         READ_COUNTER.labels(location).set(counter)
 
