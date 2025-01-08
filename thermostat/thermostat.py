@@ -64,7 +64,7 @@ def get_plug(location):
 
 
 def get_temperatures(locations):
-    URL = "http://home.972.ovh:8002"
+    URL = "http://home.972.ovh:35002"
     metrics = urllib.request.urlopen(URL).read().decode('utf-8')
 
     now_timestamp = time.time()
@@ -148,6 +148,7 @@ def update_one(thermo, temperature, current_state):
         age = datetime.datetime.now() - temperature.time
     except AttributeError:
         HEAT_AGE.labels(location=location).set(-100)
+        return False
     else:
         HEAT_AGE.labels(location=location).set(age.total_seconds())
 

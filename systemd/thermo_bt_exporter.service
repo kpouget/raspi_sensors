@@ -6,7 +6,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/root/sensors/thermo_bt/
-ExecStart=python3 /root/sensors/thermo_bt/thermo_bt_exporter.py --bind=0.0.0.0 --port=8002 --file /tmp/bleu.json /tmp/jaune.json /tmp/violet.json /tmp/noir.json /tmp/vert.json /tmp/rose.json --location chambre_sohann exterieur salon sdb chambre_parents bureau_kevin
+ExecStart=python3 /root/sensors/thermo_bt/thermo_bt_exporter.py --bind=0.0.0.0 --port=35002 --file /tmp/bleu.json /tmp/jaune.json /tmp/violet.json /tmp/noir.json /tmp/vert.json /tmp/rose.json --location chambre_sohann exterieur salon sdb chambre_parents bureau_kevin
 ExecReload=/bin/kill -HUP $MAINPID
 
 Restart=always
