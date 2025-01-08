@@ -6,7 +6,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/root/sensors/pac/
-ExecStart=python3 /root/sensors/pac/Remehatest.py
+ExecStart=python3 /root/sensors/pac/Remehatest.py --bind=0.0.0.0 --port=35004
 ExecReload=/bin/kill -HUP $MAINPID
 
 Restart=always
