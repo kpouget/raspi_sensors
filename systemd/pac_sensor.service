@@ -1,0 +1,16 @@
+[Unit]
+Description=Bluetooth listner for @I device
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/root/sensors/pac/
+ExecStart=python3 /root/sensors/pac/Remehatest.py
+ExecReload=/bin/kill -HUP $MAINPID
+
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
