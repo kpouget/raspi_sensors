@@ -127,9 +127,9 @@ if __name__ == '__main__':
             env = yaml.safe_load(f)
 
         mapping = env["mapping"]
-        mapping_str = json.dumps(mapping_str)
+        mapping_str = json.dumps(mapping)
 
-        for filename, location in mapping:
+        for filename, location in mapping.items():
             if previous_mapping != mapping_str:
                 logging.info(f"Watching for {filename} --> {location}")
 
