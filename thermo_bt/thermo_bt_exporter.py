@@ -67,7 +67,7 @@ def get_data(filename, location):
     if (temperature := data.get("temperature")) is not None and (humidity := data.get("humidity")) is not None:
         alpha = math.log(humidity / 100.0) + (17.27 * temperature) / (237.3 + temperature)
         drew = (237.3 * alpha) / (17.27 - alpha)
-        humidex = temperature + 0.5555 * (6.11 * math.exp(5417.753 * (1 / 273.16 - 1 / (273.15 + rosee))) - 10)
+        humidex = temperature + 0.5555 * (6.11 * math.exp(5417.753 * (1 / 273.16 - 1 / (273.15 + drew))) - 10)
 
         DREW_POINT.labels(location).set(drew)
         HUMIDEX.labels(location).set(humidex)
