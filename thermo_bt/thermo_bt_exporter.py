@@ -11,7 +11,7 @@ import pathlib
 
 from threading import Thread
 
-import json
+import json, yaml
 import urllib
 
 from prometheus_client import start_http_server, Gauge, Histogram
@@ -70,7 +70,7 @@ def get_data(filename, location):
 
         DREW_POINT.labels(location).set(drew)
         HUMIDEX.labels(location).set(humidex)
-        
+
     if (counter := data.get("counter")) is not None:
         READ_COUNTER.labels(location).set(counter)
 
@@ -106,27 +106,36 @@ if __name__ == '__main__':
     parser.add_argument("-b", "--bind", metavar='ADDRESS', default='0.0.0.0', help="Specify alternate bind address [default: 0.0.0.0]")
     parser.add_argument("-p", "--port", metavar='PORT', default=8000, type=int, help="Specify alternate port [default: 8000]")
     parser.add_argument("-d", "--debug", metavar='DEBUG', type=str_to_bool, help="Turns on more verbose logging, showing sensor output and post responses [default: false]")
-    parser.add_argument("-f", "--file", metavar='FILE', type=str, nargs='+', help="Files to watch")
-    parser.add_argument("-l", "--location", metavar='LOCATION', type=str, nargs='+', help="Location label for the file")
     args = parser.parse_args()
 
     # Start up the server to expose the metrics.
     start_http_server(addr=args.bind, port=args.port)
     # Generate some requests.
 
+    THIS_DIR = pathlib.Path(os.path.realpath(__file__)).parent
+
     if args.debug:
         DEBUG = True
 
-    for filename, location in zip(args.file, args.location):
-        logging.info(f"Watching for {filename} --> {location}")
 
     logging.info("Listening on http://{}:{}".format(args.bind, args.port))
 
-    previous_ts = datetime.datetime.now()
+    previous_mapping = ""
     while True:
-        for filename, location in zip(args.file, args.location):
-            get_data(filename, location)
 
+        with open(THIS_DIR / ".env.yaml") as f:
+            env = yaml.safe_load(f)
+
+        mapping = env["mapping"]
+        mapping_str = json.dumps(mapping_str)
+
+        for filename, location in mapping:
+            if previous_mapping != mapping_str:
+                logging.info(f"Watching for {filename} --> {location}")
+
+            get_data(f"/tmp/{filename}.json", location)
+
+        previous_mapping = mapping_str
         if DEBUG:
             logging.info('Sensor data: {}'.format(collect_all_data()))
 
