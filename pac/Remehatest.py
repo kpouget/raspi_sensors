@@ -293,7 +293,7 @@ HEAT_DIFF = Gauge('heat_difference', 'Heat difference', ["location"], registry=r
 HEAT_TARGET = Gauge('heat_target', 'Heat target', ["location"], registry=registry)
 
 HEAT_CURRENT = Gauge('heat_current', 'Heat current', ["location"], registry=registry)
-HEATER_ENERGY = Gauge('heater_ENERGY', 'Heater energy', ["location", "type"], registry=registry)
+HEATER_ENERGY = Gauge('heater_energy', 'Heater energy', ["location", "type"], registry=registry)
 
 def update_prometheus(access_token, show):
     #setScheduleMode(access_token)
