@@ -5,7 +5,7 @@ import time
 import logging
 import argparse
 from prometheus_client import start_http_server, Gauge, Histogram, generate_latest, CollectorRegistry
-import datetime, dateutil
+import datetime, dateutil.parse
 
 import carelink_client2
 
