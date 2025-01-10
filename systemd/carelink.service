@@ -1,0 +1,16 @@
+Description=Export the carelink data
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/root/sensors/carelink
+ExecStart=python3 ./export.py --bind=0.0.0.0 --port=35005
+ExecReload=/bin/kill -HUP $MAINPID
+
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
+"""
