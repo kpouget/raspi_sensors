@@ -82,11 +82,14 @@ def update_prometheus(show, from_file):
     else:
         last_sg.set(NaN)
 
-    last_sg_ts = dateutil.parser.parse(patientData["lastSG"]["timestamp"])
+    try:
+        last_sg_ts = dateutil.parser.parse(patientData["lastSG"]["timestamp"])
 
-    now = datetime.datetime.now()
-    age = (now - dateutil.parser.parse(patientData["lastSG"]["timestamp"])).total_seconds()
-    last_sg_age.set(age if age > 0 else 0)
+        now = datetime.datetime.now()
+        age = (now - dateutil.parser.parse(last_sg_ts)).total_seconds()
+        last_sg_age.set(age if age > 0 else 0)
+    except KeyError:
+        last_sg_age.set(NaN)
 
     for state_name, count in sensor_state_dict:
         sensor_state_dict[state_name] = 0
