@@ -86,7 +86,7 @@ def update_prometheus(show, from_file):
         last_sg_ts = dateutil.parser.parse(patientData["lastSG"]["timestamp"])
 
         now = datetime.datetime.now()
-        age = (now - dateutil.parser.parse(last_sg_ts)).total_seconds()
+        age = (now - last_sg_ts).total_seconds()
         last_sg_age.set(age if age > 0 else 0)
     except KeyError:
         last_sg_age.set(NaN)
