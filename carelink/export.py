@@ -23,7 +23,7 @@ reservoir_remaining_units = Gauge("reservoir_remaining_units", "", registry=regi
 pump_battery_level_percent = Gauge("pump_battery_level_percent", "", registry=registry)
 time_in_range_percent = Gauge("time_in_range_percent", "percentage time in range", ["range"], registry=registry)
 
-average_sg = Gauge("average_sg", "average sensor glucose", ["_"], registry=registry)
+average_sg = Gauge("average_sg", "average sensor glucose", registry=registry)
 last_sg = Gauge("last_sg", "last sensor glucose reading", registry=registry)
 last_sg_age = Gauge("last_sg_age", "age of the last sensor glucose reading, in seconds", registry=registry)
 
@@ -75,7 +75,7 @@ def update_prometheus(show, from_file):
     else:
         sensor_duration_minutes.set(NaN)
 
-    average_sg.labels(0).set(patientData["averageSGFloat"])
+    average_sg.set(patientData["averageSGFloat"])
 
     if patientData["lastSG"]["sg"] > 10:
         last_sg.set(patientData["lastSG"]["sg"])
