@@ -6,8 +6,11 @@ import logging
 import argparse
 from prometheus_client import start_http_server, Gauge, Histogram, generate_latest, CollectorRegistry
 import datetime, dateutil.parser
+from collections import defaultdict
 
 import carelink_client2
+
+NaN = float("NaN")
 
 registry = CollectorRegistry()
 
@@ -20,13 +23,17 @@ reservoir_remaining_units = Gauge("reservoir_remaining_units", "", registry=regi
 pump_battery_level_percent = Gauge("pump_battery_level_percent", "", registry=registry)
 time_in_range_percent = Gauge("time_in_range_percent", "percentage time in range", ["range"], registry=registry)
 
-average_sg = Gauge("average_sg", "average sensor glucose", registry=registry)
+average_sg = Gauge("average_sg", "average sensor glucose", ["_"], registry=registry)
 last_sg = Gauge("last_sg", "last sensor glucose reading", registry=registry)
 last_sg_age = Gauge("last_sg_age", "age of the last sensor glucose reading, in seconds", registry=registry)
 
+sensor_state = Gauge('sensor_state', 'sensor_state', ["state"], registry=registry)
+sensor_state_dict = defaultdict(int)
+
+
 def update_prometheus(show, from_file):
     if from_file:
-        with open("data.json") as f:
+        with open(from_file) as f:
             data = json.load(f)
         carelink_exporter_state.set(0)
     else:
@@ -48,28 +55,50 @@ def update_prometheus(show, from_file):
     carelink_in_range.labels("pump").set(1 if patientData["conduitMedicalDeviceInRange"] else 0)
     carelink_in_range.labels("sensor").set(1 if patientData["conduitSensorInRange"] else 0)
 
-    sensor_duration_minutes.set(patientData["sensorDurationMinutes"])
+    in_range = carelink_in_range.labels("pump") and carelink_in_range.labels("sensor")
 
-    reservoir_level_percent.set(patientData["reservoirLevelPercent"])
-    reservoir_remaining_units.set(patientData["reservoirRemainingUnits"])
-
-    pump_battery_level_percent.set(patientData["pumpBatteryLevelPercent"])
+    if in_range:
+        reservoir_level_percent.set(patientData["reservoirLevelPercent"])
+        reservoir_remaining_units.set(patientData["reservoirRemainingUnits"])
+        pump_battery_level_percent.set(patientData["pumpBatteryLevelPercent"])
+    else:
+        reservoir_level_percent.set(NaN)
+        reservoir_remaining_units.set(NaN)
+        pump_battery_level_percent.set(NaN)
 
     time_in_range_percent.labels("hypo").set(patientData["belowHypoLimit"])
     time_in_range_percent.labels("in_range").set(patientData["timeInRange"])
     time_in_range_percent.labels("hyper").set(patientData["aboveHyperLimit"])
 
-    average_sg.set(patientData["averageSGFloat"])
+    if in_range:
+        sensor_duration_minutes.set(patientData["sensorDurationMinutes"])
+    else:
+        sensor_duration_minutes.set(NaN)
 
-    last_sg.set(patientData["lastSG"]["sg"])
+    average_sg.labels(0).set(patientData["averageSGFloat"])
+
+    if patientData["lastSG"]["sg"] > 10:
+        last_sg.set(patientData["lastSG"]["sg"])
+    else:
+        last_sg.set(NaN)
+
     last_sg_ts = dateutil.parser.parse(patientData["lastSG"]["timestamp"])
 
     now = datetime.datetime.now()
     age = (now - dateutil.parser.parse(patientData["lastSG"]["timestamp"])).total_seconds()
     last_sg_age.set(age if age > 0 else 0)
 
-    # for sg in patientData["sgs"]:
-    #     print(sg["timestamp"], sg["sensorState"].replace("NO_ERROR_MESSAGE", ""), sg["sg"] or "")
+    for state_name, count in sensor_state_dict:
+        sensor_state_dict[state_name] = 0
+
+    for sg in patientData["sgs"]:
+        try:
+            sensor_state_dict[sg["sensorState"]] += 1
+        except KeyError:
+            sensor_state_dict["NO_STATE"] += 1
+
+    for state_name, count in sensor_state_dict.items():
+        sensor_state.labels(state_name).set(count)
 
     pass
 
