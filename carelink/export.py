@@ -55,7 +55,7 @@ def update_prometheus(show, from_file):
     carelink_in_range.labels("pump").set(1 if patientData["conduitMedicalDeviceInRange"] else 0)
     carelink_in_range.labels("sensor").set(1 if patientData["conduitSensorInRange"] else 0)
 
-    in_range = carelink_in_range.labels("pump") and carelink_in_range.labels("sensor")
+    in_range = patientData["conduitMedicalDeviceInRange"] and patientData["conduitSensorInRange"]
 
     if in_range:
         reservoir_level_percent.set(patientData["reservoirLevelPercent"])
