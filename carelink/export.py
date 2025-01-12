@@ -91,7 +91,7 @@ def update_prometheus(show, from_file):
     except KeyError:
         last_sg_age.set(NaN)
 
-    for state_name, count in sensor_state_dict:
+    for state_name, count in sensor_state_dict.items():
         sensor_state_dict[state_name] = 0
 
     for sg in patientData["sgs"]:
