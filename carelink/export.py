@@ -30,6 +30,7 @@ last_sg_age = Gauge("last_sg_age", "age of the last sensor glucose reading, in s
 sensor_state = Gauge('sensor_state', 'sensor_state', ["state"], registry=registry)
 sensor_state_dict = defaultdict(int)
 
+
 last_sensor_local = None
 
 def update_prometheus(show, from_file):
@@ -71,6 +72,7 @@ def update_prometheus(show, from_file):
     time_in_range_percent.labels("in_range").set(patientData["timeInRange"])
     time_in_range_percent.labels("hyper").set(patientData["aboveHyperLimit"])
 
+    global last_sensor_local
     if in_range:
         last_sensor_local = (patientData["sensorDurationMinutes"], datetime.datetime.now())
         sensor_duration_minutes.set(last_sensor_local[0])
