@@ -63,10 +63,6 @@ def update_prometheus(show, from_file):
         reservoir_level_percent.set(patientData["reservoirLevelPercent"])
         reservoir_remaining_units.set(patientData["reservoirRemainingUnits"])
         pump_battery_level_percent.set(patientData["pumpBatteryLevelPercent"])
-    else:
-        reservoir_level_percent.set(NaN)
-        reservoir_remaining_units.set(NaN)
-        pump_battery_level_percent.set(NaN)
 
     time_in_range_percent.labels("hypo").set(patientData["belowHypoLimit"])
     time_in_range_percent.labels("in_range").set(patientData["timeInRange"])
