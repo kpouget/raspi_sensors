@@ -1,0 +1,28 @@
+# HELP water_temperature Water temperature
+# TYPE water_temperature gauge
+water_temperature{type="target"} 57.5
+water_temperature{type="targetdhw"} 57.5
+water_temperature{type="control"} 55.5
+water_temperature{type="bottom_tank"} 42.7
+water_temperature{type="middle"} 49.7
+# HELP water_volume Water volume
+# TYPE water_volume gauge
+water_volume{type="hot_water"} 311.0
+water_volume{type="v40_estimation"} 26862.0
+# HELP water_heater_time_in_state Water heater time in state
+# TYPE water_heater_time_in_state gauge
+water_heater_time_in_state{type="heat_pump_operating"} 1044.0
+water_heater_time_in_state{type="electric_booster_operating"} 77.0
+water_heater_time_in_state{type="middle_water_temp_in_state"} 265.1
+# HELP water_heater_status Water heater status
+# TYPE water_heater_status gauge
+water_heater_status{type="shower_remaining"} 1.0
+water_heater_status{type="power_heat_electrical"} 0.0
+water_heater_status{type="power_heat_pump"} 860.0
+# HELP water_heater_state Water heater state
+# TYPE water_heater_state gauge
+water_heater_state{type="Heating"} 1.0
+# HELP heater_energy Heater energy
+# TYPE heater_energy gauge
+heater_energy{location="water_heater",type="consumption"} 546.352
+
