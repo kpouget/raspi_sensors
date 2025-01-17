@@ -61,7 +61,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/root/sensors/...
-ExecStart=python3 ./....py --bind=0.0.0.0 --port=3500n
+ExecStart=python3 ./export.py --bind=0.0.0.0 --port=3500n
 ExecReload=/bin/kill -HUP $MAINPID
 
 Restart=always
