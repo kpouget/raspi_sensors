@@ -70,7 +70,7 @@ def update_prometheus(show, from_file):
         time_in_range_percent.labels("hyper").set(patientData["aboveHyperLimit"])
 
     global last_sensor_local
-    if in_range:
+    if in_range and patientData["sensorDurationMinutes"]:
         last_sensor_local = (patientData["sensorDurationMinutes"], datetime.datetime.now())
         sensor_duration_minutes.set(last_sensor_local[0])
     elif last_sensor_local:
