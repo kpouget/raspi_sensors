@@ -64,9 +64,10 @@ def update_prometheus(show, from_file):
         reservoir_remaining_units.set(patientData["reservoirRemainingUnits"])
         pump_battery_level_percent.set(patientData["pumpBatteryLevelPercent"])
 
-    time_in_range_percent.labels("hypo").set(patientData["belowHypoLimit"])
-    time_in_range_percent.labels("in_range").set(patientData["timeInRange"])
-    time_in_range_percent.labels("hyper").set(patientData["aboveHyperLimit"])
+    if patientData["timeInRange"]:
+        time_in_range_percent.labels("hypo").set(patientData["belowHypoLimit"])
+        time_in_range_percent.labels("in_range").set(patientData["timeInRange"])
+        time_in_range_percent.labels("hyper").set(patientData["aboveHyperLimit"])
 
     global last_sensor_local
     if in_range:
