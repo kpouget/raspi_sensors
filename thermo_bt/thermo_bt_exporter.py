@@ -124,7 +124,7 @@ if __name__ == '__main__':
     previous_mapping = ""
     while True:
 
-        with open(THIS_DIR / ".env.yaml") as f:
+        with open(THIS_DIR / "env.yaml") as f:
             env = yaml.safe_load(f)
 
         mapping = env["mapping"]
