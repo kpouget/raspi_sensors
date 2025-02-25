@@ -297,13 +297,19 @@ HEAT_TARGET = Gauge('heat_target', 'Heat target', ["location"], registry=registr
 HEAT_CURRENT = Gauge('heat_current', 'Heat current', ["location"], registry=registry)
 HEATER_ENERGY = Gauge('heater_energy', 'Heater energy', ["location", "type"], registry=registry)
 
+GAS_CALORIFIC_VALUE = Gauge("gas_calorific_value", "Gas calorific value", registry=registry)
+
 def update_prometheus(access_token, show):
     #setScheduleMode(access_token)
     dashboard_data = GetTempValues(access_token)
 
     data = dashboard_data["appliances"][0]
 
-    outdoorTemperature = data["outdoorTemperature"]
+    gasCalorificValue = data["gasCalorificValue"]
+    GAS_CALORIFIC_VALUE.set(gasCalorificValue)
+
+    outdoorData = data["outdoorTemperatureInformation"]
+    outdoorTemperature = outdoorData["applianceOutdoorTemperature"]
     TEMPERATURE.labels("pac_exterieur").set(outdoorTemperature)
 
     waterPressure = data["waterPressure"]
