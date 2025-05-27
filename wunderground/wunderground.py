@@ -33,6 +33,10 @@ DEBUG = os.getenv('DEBUG', 'false') == 'true'
 
 # ---
 
+PRESSURE_OFFSET = 16.04
+
+# ---
+
 
 GAUGES = {
     'humidity': ("Humidity (in %)", ["location"]),
@@ -127,6 +131,8 @@ def get_wunderground(station_id, api_key):
             has_errors.append(key)
         if value is None:
             continue
+        if key == "pressure":
+            value -= PRESSURE_OFFSET
         try:
             gauge.set(value)
         except:
