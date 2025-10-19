@@ -33,7 +33,7 @@ DEBUG = os.getenv('DEBUG', 'false') == 'true'
 
 # ---
 
-PRESSURE_OFFSET = 16.04
+PRESSURE_OFFSET = 0
 
 # ---
 
