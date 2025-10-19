@@ -124,7 +124,8 @@ def get_temperature(factor):
 def get_pressure():
     """Get pressure from the weather sensor"""
     try:
-        pressure = bme280.get_pressure()
+        PRESSURE_OFFSET = 16
+        pressure = bme280.get_pressure() + PRESSURE_OFFSET
         PRESSURE.set(pressure)
     except IOError:
         logging.error("Could not get pressure readings. Resetting i2c.")
