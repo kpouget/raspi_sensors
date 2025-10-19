@@ -62,7 +62,7 @@ PROPS = {
     "dewpt": ('temperature',  dict(mode="dew_point", location="toiture")),
     "heatIndex": ('temperature',  dict(mode="heat_index", location="toiture")),
     "windChill": ('temperature',  dict(mode="wind_chill", location="toiture")),
-    
+
     "humidity": ('humidity', dict(location="toiture")),
 
     "precipRate": ('rain', dict(mode="rate")),
@@ -92,12 +92,12 @@ def prepare_gauges(gauges_def, props_def):
 
     for key, props in props_def.items():
         metric, labels = props
-        
+
         gauge = gauges[metric]
 
         if labels:
             gauge = gauge.labels(**labels)
- 
+
         labeled_gauges[key] = gauge
 
     return labeled_gauges
@@ -112,7 +112,7 @@ def get_data(station_id, api_key):
     try:
         req = urllib.request.Request(url,  headers={'User-Agent': 'Mozilla/5.0'})
         response = urllib.request.urlopen(req).read()
-        
+
         data = json.loads(response)
         data = data["observations"][0]
         mtr = data.pop("metric")
