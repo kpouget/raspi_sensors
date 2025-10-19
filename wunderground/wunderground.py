@@ -37,6 +37,11 @@ PRESSURE_OFFSET = 16.04
 
 # ---
 
+_RIVERS = Gauge('river_flow', 'Flow of the river (m3/s)', ["name"])
+DORDOGNE = _RIVERS.labels(name="Dordogne")
+LOT = _RIVERS.labels(name="Lot")
+
+# ---
 
 GAUGES = {
     'humidity': ("Humidity (in %)", ["location"]),
@@ -166,6 +171,31 @@ def str_to_bool(value):
     raise ValueError('{} is not a valid boolean value'.format(value))
 
 
+def get_level(river_code, serie):
+    URL = "https://www.vigicrues.gouv.fr/services/observations.json/index.php?CdStationHydro={}&GrdSerie={}&FormatSortie=simple"
+
+    url = URL.format(river_code, serie)
+    try:
+        content = urllib.request.urlopen(url).read().decode('utf-8')
+        measures = json.loads(content)
+        hauteur = measures["Serie"]["ObssHydro"][-1][1]
+
+        return hauteur
+    except Exception as e:
+        logging.warning(f"get_level(river_code={river_code}, series={Q}): {e.__class__.__name__}: {e}")
+        return None
+
+
+def generate_hauteurs():
+    dordogne = get_level("P230001001", "Q")
+    if dordogne is not None:
+        DORDOGNE.set(dordogne)
+
+    lot = get_level("O823153002", "Q")
+    if lot is not None:
+        LOT.set(lot)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-b", "--bind", metavar='ADDRESS', default='0.0.0.0', help="Specify alternate bind address [default: 0.0.0.0]")
@@ -184,7 +214,15 @@ if __name__ == '__main__':
     first = True
     previous_ts = datetime.datetime.now()
     while True:
-        get_wunderground(station_id, api_key)
+        try:
+            get_wunderground(station_id, api_key)
+        except Exception as e:
+            logging.exception("Failed to generate the wunderground data ...")
+
+        try:
+            generate_hauteurs()
+        except Exception as e:
+            logging.exception("Failed to generate the river hauteurs ...")
 
         if first:
             # Start up the server to expose the metrics.
