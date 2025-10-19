@@ -1,4 +1,3 @@
-thermo_bt/*.log
-infoclimat/*.log
+*/*.log
 thermo_bt/SnifferAPI/__pycache__/
 thermo_bt/__pycache__/
