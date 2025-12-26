@@ -182,7 +182,7 @@ def get_level(river_code, serie):
 
         return hauteur
     except Exception as e:
-        logging.warning(f"get_level(river_code={river_code}, series={Q}): {e.__class__.__name__}: {e}")
+        logging.warning(f"get_level(river_code={river_code}, series={serie}): {e.__class__.__name__}: {e}")
         return None
 
 
