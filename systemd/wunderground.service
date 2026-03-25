@@ -6,7 +6,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/root/sensors/wunderground
-ExecStart=python3 /root/sensors/wunderground/wunderground.py --bind=0.0.0.0 --port=35007
+ExecStart=python3 /root/sensors/wunderground/wunderground.py --bind=0.0.0.0 --port=20007
 ExecReload=/bin/kill -HUP $MAINPID
 
 Restart=always
