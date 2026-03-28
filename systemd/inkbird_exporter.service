@@ -1,0 +1,16 @@
+[Unit]
+Description=Inkbird exporter service
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/root/sensors/inkbird/
+ExecStart=python3 /root/sensors/inkbird/inkbird_exporter.py --bind=0.0.0.0 --port=20001
+ExecReload=/bin/kill -HUP $MAINPID
+
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
