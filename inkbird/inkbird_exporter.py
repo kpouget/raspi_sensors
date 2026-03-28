@@ -3,7 +3,6 @@ import os
 import time
 import logging
 import argparse
-import asyncio
 from threading import Thread
 
 from prometheus_client import start_http_server, Gauge
@@ -41,10 +40,17 @@ def get_inkbird_data():
 
         # discover returns a dict: {address: (device, adv_data)}
         # We wrap this in a try/except or helper to run it 'sync'
+        import asyncio
         devices_dict = asyncio.run(devices)
     except Exception as e:
         logging.error(f"Error scanning for device: {e}")
         return None, None, None
+
+    # Debug: log all found devices
+    if DEBUG:
+        found_devices = list(devices_dict.keys())
+        logging.info(f"Found {len(found_devices)} devices: {found_devices}")
+        logging.info(f"Looking for device: {TARGET_MAC}")
 
     if TARGET_MAC not in devices_dict:
         return None, None, None
@@ -53,6 +59,8 @@ def get_inkbird_data():
     m_data = adv_data.manufacturer_data
 
     if not m_data:
+        if DEBUG:
+            logging.warning(f"No manufacturer data for device {TARGET_MAC}")
         return None, None, None
 
     for company_id, payload in m_data.items():
@@ -73,7 +81,8 @@ def update_metrics():
 
     if temp is None or timestamp is None:
         SCAN_SUCCESS.labels(device_mac=TARGET_MAC).set(0)
-        logging.warning(f"Device {TARGET_MAC} not found in scan")
+        if DEBUG:
+            logging.warning(f"Device {TARGET_MAC} not found in scan")
         return
 
     TEMPERATURE.labels(device_mac=TARGET_MAC).set(temp)
