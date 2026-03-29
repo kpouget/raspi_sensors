@@ -3,10 +3,12 @@ import os
 import time
 import logging
 import argparse
+import subprocess
+import json
+import sys
 from threading import Thread
 
 from prometheus_client import start_http_server, Gauge
-from bleak import BleakScanner
 
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
@@ -33,47 +35,55 @@ LAST_SEEN = Gauge('inkbird_last_seen_timestamp', 'Last time the device was seen 
 SCAN_SUCCESS = Gauge('inkbird_scan_success', 'Whether the last scan was successful (1=success, 0=failure)', ['device_mac'])
 
 def get_inkbird_data():
-    """Scans briefly to find the target MAC and decode its broadcast."""
+    """Scans briefly to find the target MAC using subprocess to prevent FD leaks."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    scanner_script = os.path.join(script_dir, "ble_scanner.py")
+
     try:
-        # We use a short scan (5s) to find the current advertisement packet
-        devices = BleakScanner.discover(return_adv=True, timeout=5.0)
+        # Run BLE scan in subprocess with timeout
+        result = subprocess.run(
+            ["python3", scanner_script, TARGET_MAC],
+            capture_output=True,
+            text=True,
+            timeout=25  # 25 second timeout to allow for retries
+        )
 
-        # discover returns a dict: {address: (device, adv_data)}
-        # We wrap this in a try/except or helper to run it 'sync'
-        import asyncio
-        devices_dict = asyncio.run(devices)
+        if result.returncode != 0:
+            logging.error(f"BLE scanner subprocess failed with code {result.returncode}: {result.stderr}")
+            return None, None, None
+
+        # Parse JSON result
+        try:
+            data = json.loads(result.stdout.strip())
+        except json.JSONDecodeError as e:
+            logging.error(f"Failed to parse BLE scanner output: {e}")
+            return None, None, None
+
+        if data.get("error"):
+            if DEBUG:
+                logging.warning(f"BLE scan error: {data['error']}")
+            return None, None, None
+
+        if not data.get("found"):
+            if DEBUG:
+                logging.info(f"Device {TARGET_MAC} not found in scan")
+            return None, None, None
+
+        temp = data.get("temperature")
+        battery = data.get("battery")
+        timestamp = data.get("timestamp")
+
+        if DEBUG:
+            logging.info(f"Found device {TARGET_MAC}: temp={temp:.2f}°C, battery={battery}%")
+
+        return temp, battery, timestamp
+
+    except subprocess.TimeoutExpired:
+        logging.error("BLE scanner subprocess timed out")
+        return None, None, None
     except Exception as e:
-        logging.error(f"Error scanning for device: {e}")
+        logging.error(f"Error running BLE scanner subprocess: {e}")
         return None, None, None
-
-    # Debug: log all found devices
-    if DEBUG:
-        found_devices = list(devices_dict.keys())
-        logging.info(f"Found {len(found_devices)} devices: {found_devices}")
-        logging.info(f"Looking for device: {TARGET_MAC}")
-
-    if TARGET_MAC not in devices_dict:
-        return None, None, None
-
-    device, adv_data = devices_dict[TARGET_MAC]
-    m_data = adv_data.manufacturer_data
-
-    if not m_data:
-        if DEBUG:
-            logging.warning(f"No manufacturer data for device {TARGET_MAC}")
-        return None, None, None
-
-    for company_id, payload in m_data.items():
-        # Our discovered logic: Key is temp, Payload[5] is battery
-        temp_c = company_id / 100.0
-        battery = payload[5] if len(payload) >= 6 else None
-
-        if DEBUG:
-            logging.info(f"Found device {TARGET_MAC}: temp={temp_c:.2f}°C, battery={battery}%")
-
-        return temp_c, battery, time.time()
-
-    return None, None, None
 
 def update_metrics():
     """Update Prometheus metrics with current inkbird data"""
@@ -133,18 +143,26 @@ if __name__ == '__main__':
     if args.interval:
         SCAN_INTERVAL = args.interval
 
-    # Start up the server to expose the metrics
-    start_http_server(addr=args.bind, port=args.port)
-
     logging.info(f"Monitoring Inkbird device {TARGET_MAC} every {SCAN_INTERVAL}s")
-    logging.info("Listening on http://{}:{}".format(args.bind, args.port))
+
+    if not DEBUG:
+        # Start up the server to expose the metrics
+        start_http_server(addr=args.bind, port=args.port)
+        logging.info("Listening on http://{}:{}".format(args.bind, args.port))
 
     try:
         while True:
-            update_metrics()
-
             if DEBUG:
-                logging.info('Sensor data: {}'.format(collect_all_data()))
+                # In debug mode, just get and print the data directly
+                temp, battery, timestamp = get_inkbird_data()
+                if temp is not None:
+                    time_str = time.strftime("%H:%M:%S", time.localtime(timestamp))
+                    print(f"[{time_str}] Temp: {temp:.2f}°C | Battery: {battery}%")
+                else:
+                    print(f"[{time.strftime('%H:%M:%S')}] Device not found in scan.")
+            else:
+                # In production mode, update Prometheus metrics
+                update_metrics()
 
             time.sleep(SCAN_INTERVAL)
 

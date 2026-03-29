@@ -12,5 +12,8 @@ ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 RestartSec=60
 
+# Restart every 6 hours to prevent resource leaks
+RuntimeMaxSec=21600
+
 [Install]
 WantedBy=multi-user.target
